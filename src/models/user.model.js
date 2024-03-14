@@ -63,22 +63,34 @@ const userSchema = new Schema(
 // This ensures that passwords are securely hashed before being stored in the database.
 // The hash function is asynchronous to prevent blocking the event loop during password hashing.
 
+
+userSchema.pre("save", async function (next) {
+    // Check if the password field has been modified.
+    // If not modified, skip password hashing and proceed to the next middleware.
+    
+    //the conditional check over the password field is added
+    // to optimize the performance of the pre-save middleware
+    // and avoid innecessary password hasing operations
+
+    // Hashing passwords using bcrypt can be computationally intensive, 
+    // especially for large datasets. By checking if the password 
+    // has been modified, we can avoid unnecessary hashing operations 
+    // when updating documents that don't involve password changes. 
+    // This optimization helps improve the overall performance of the application.
+
+    if(!this.isModified("password")) return next();
+    // Hash the password field using bcrypt with a salt round of 10.
+    // The higher the salt round, the more secure but slower the hashing process.
+    
+    this.password = await bcrypt.hash(this.password, 10)
+    console.log(this.password);
+    next()
+})
+
+// bool value will be returned
 userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password, this.password)
 }
-
-// Define a method on the user schema to compare a provided password with the hashed password stored in the user document.
-// This method is asynchronous, as bcrypt's compare function returns a Promise that resolves to a boolean indicating whether the passwords match.
-userSchema.methods.isPasswordCorrect = async function(password) {
-    // Use bcrypt's compare function to compare the provided password with the hashed password stored in the user document.
-    // This function returns a Promise that resolves to a boolean value indicating whether the passwords match.
-    return await bcrypt.compare(password, this.password);
-};
-
-// ^ method to generate access token 
-// Define a method on the user schema to generate an access token for the user.
-// This method utilizes the jsonwebtoken (JWT) library to sign a JWT token with user-specific data.
-// The generated token will be used for authentication and authorization purposes.
 
 userSchema.methods.generateAccessToken = function(){
     // Generate a JWT token with the specified payload containing user data.
@@ -105,7 +117,6 @@ userSchema.methods.generateAccessToken = function(){
         }
     )
 }
-
 userSchema.methods.generateRefreshToken = function(){
 
     return jwt.sign(
