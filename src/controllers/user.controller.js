@@ -5,6 +5,8 @@ import { uploadOnCloudinary } from "../../utils/cloudinary.service.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
+// take this as refrence
+// all the comments are written in this dummy register user
 // const registerUserdummy = asyncHandler(async(req, res)=>{
 //     // ^ Steps to do :- 
 //     // steps to register 
