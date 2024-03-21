@@ -507,6 +507,7 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
                 username: username?.toLowerCase()
             }
         },
+        // lookup is used to merge two collections
         {
             $lookup: {
                 from: "subscriptions",
@@ -523,8 +524,11 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
                 as: "subscribedTo"
             }
         },
+        // addfields is used to add new fields in the response
+
         {
             $addFields: {
+                // subscribersCount is the size of the subscribers array
                 subscribersCount: {
                     $size: "$subscribers"
                 },
