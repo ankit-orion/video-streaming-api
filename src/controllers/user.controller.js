@@ -493,25 +493,43 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
 })
 
 
-//TODO
+// getUSerChannelProfile is used to get the profile of the user
+// we have to pass the username in the url
+// we have to check if the username is present or not
+
 const getUserChannelProfile = asyncHandler(async(req, res) => {
+    // here we are destructuring the username from the params
+    // params is used to get the data from the url
     const {username} = req.params
 
+    // trim is used to remove the white spaces from the string
     if (!username?.trim()) {
         throw new ApiError(400, "username is missing")
     }
+// syntax of aggregate is aggregate([{first_pipeline},{second_pipeline},{third_pipeline}])
+// aggregate is used to perform multiple operations on the data
+// here we are using aggregate to get the data from the user collection
 
+// channel is the name of the array which will have the data
     const channel = await User.aggregate([
         {
+            // we are using match to match the username
+            
             $match: {
                 username: username?.toLowerCase()
             }
         },
+        // after match we have one document in the channel array
+        // lookup is used to merge two collections
+
         // lookup is used to merge two collections
         {
             $lookup: {
+                // from is the collection from which we want to get the data
                 from: "subscriptions",
+                // localField is the field in the current collection
                 localField: "_id",
+                // channel will give subscribers
                 foreignField: "channel",
                 as: "subscribers"
             }
@@ -530,13 +548,18 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
             $addFields: {
                 // subscribersCount is the size of the subscribers array
                 subscribersCount: {
+                    // $size is used to get the size of the array
+                    // here we are getting the size of the subscribers array
                     $size: "$subscribers"
                 },
                 channelsSubscribedToCount: {
                     $size: "$subscribedTo"
                 },
+                // $in is used to check if the element is present in the array or not
                 isSubscribed: {
+                    // here we are checking if the user is subscribed to the channel or not
                     $cond: {
+                        // in can be ued in array as well as in object
                         if: {$in: [req.user?._id, "$subscribers.subscriber"]},
                         then: true,
                         else: false
@@ -544,6 +567,9 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
                 }
             }
         },
+        // project is used to get the fields which we want to show in the response
+        // syntax: $project: {field1: 1, field2: 1}
+        // 1 is flag which is used to show the field
         {
             $project: {
                 fullName: 1,
@@ -559,6 +585,7 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
         }
     ])
 
+    // if the channel is empty we have to throw an error
     if (!channel?.length) {
         throw new ApiError(404, "channel does not exists")
     }
