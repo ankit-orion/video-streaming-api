@@ -602,6 +602,7 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     const user = await User.aggregate([
         {
             $match: {
+                // here we are creating object id for the user
                 _id: new mongoose.Types.ObjectId(req.user._id)
             }
         },
@@ -611,6 +612,8 @@ const getWatchHistory = asyncHandler(async(req, res) => {
                 localField: "watchHistory",
                 foreignField: "_id",
                 as: "watchHistory",
+                // pipeline is used to perform multiple operations
+                // this is used to get the owner of the video
                 pipeline: [
                     {
                         $lookup: {
@@ -620,6 +623,7 @@ const getWatchHistory = asyncHandler(async(req, res) => {
                             as: "owner",
                             pipeline: [
                                 {
+                                    // here this pipeline will give the owner of the video
                                     $project: {
                                         fullName: 1,
                                         username: 1,
