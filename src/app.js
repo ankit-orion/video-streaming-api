@@ -31,11 +31,13 @@ app.use(cookieparser());
 
 //Routes
 import userRouter from "./routes/user.routes.js";
+import videoRouter from "./routes/video.routes.js";
 // routes declaration 
 // here we are using a middleware 
 // when a user is on /user route is will redirect to userRouter which
 // is declared in routes file
 app.use("/api/v1/users", userRouter)
+app.use("/api/v1/videos", videoRouter)
 
 // http://localhost:8000/api/v1/users/register
 
